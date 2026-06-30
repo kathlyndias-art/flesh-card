@@ -1,1 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - My Little Pony</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
 
+    <style>
+        /* Configuração do Fundo Lilás com Estrelas Roxas Escuras */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e2d4f7; /* Lilás de fundo */
+            /* Padrão de estrelas desenhado com CSS */
+            background-image: 
+                radial-gradient(#5a3782 15%, transparent 16%),
+                radial-gradient(#5a3782 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #5a3782;
+            text-shadow: 2px 2px 0px #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* Container do Flashcard com efeito 3D */
+        .card-container {
+            width: 350px;
+            height: 250px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(90, 55, 130, 0.3);
+            border-radius: 20px;
+        }
+
+        /* Classe que o JavaScript vai ativar para virar o card */
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Estilização das Faces do Card */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border: 4px solid #5a3782;
+        }
+
+        /* Frente do Card (Pergunta) */
+        .card-front {
+            background-color: #fff0f5; /* Rosa bem clarinho */
+            color: #7b4397;
+        }
+
+        /* Verso do Card (Resposta) */
+        .card-back {
+            background-color: #ffdaec; /* Rosa Elemento da Amizade */
+            color: #5a3782;
+            transform: rotateY(180deg);
+        }
+
+        .card-face h2 {
+            font-family: 'Fredoka One', cursive;
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+        }
+
+        .card-face p {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+        }
+
+        /* Botões de Navegação */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        button {
+            background-color: #5a3782;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #3c2358;
+            transition: all 0.1s ease;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0px #3c2358;
+        }
+
+        button:hover {
+            background-color: #7b4397;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mágica da Amizade</h1>
+
+    <div class="card-container" onclick="flipCard()">
+        <div class="card" id="flashcard">
+            <div class="card-face card-front">
+                <h2 id="front-title">Elemento?</h2>
+                <p id="front-text">Quem representa o Elemento da Mágica?</p>
+            </div>
+            <div class="card-face card-back">
+                <h2>Resposta!</h2>
+                <p id="back-text">Twilight Sparkle ✨</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevCard(event)">Anterior</button>
+        <button onclick="nextCard(event)">Próximo</button>
+    </div>
+
+    <script>
+        // Dados dos Flashcards (Tema: My Little Pony)
+        const flashcards = [
+            { q: "Quem representa o Elemento da Mágica?", a: "Twilight Sparkle ✨" },
+            { q: "Quem representa o Elemento da Lealdade?", a: "Rainbow Dash ⚡" },
+            { q: "Quem representa o Elemento da Bondade?", a: "Fluttershy 🦋" },
+            { q: "Quem representa o Elemento da Generosidade?", a: "Rarity 💎" },
+            { q: "Quem representa o Elemento da Honestidade?", a: "Applejack 🍎" },
+            { q: "Quem representa o Elemento da Alegria?", a: "Pinkie Pie 🎈" }
+        ];
+
+        let currentIndex = 0;
+        const cardElement = document.getElementById('flashcard');
+        const frontText = document.getElementById('front-text');
+        const backText = document.getElementById('back-text');
+
+        // Função para virar o cartão
+        function flipCard() {
+            cardElement.classList.toggle('flipped');
+        }
+
+        // Atualiza o conteúdo do cartão baseado no índice atual
+        function updateCard() {
+            // Remove a virada para voltar para a frente antes de mudar o texto
+            cardElement.classList.remove('flipped');
+            
+            // Espera um tempinho para o card desvirar antes de trocar o texto (efeito visual limpo)
+            setTimeout(() => {
+                frontText.innerText = flashcards[currentIndex].q;
+                backText.innerText = flashcards[currentIndex].a;
+            }, 200);
+        }
+
+        // Avança para o próximo card
+        function nextCard(event) {
+            event.stopPropagation(); // Evita que o card vire ao clicar no botão
+            currentIndex = (currentIndex + 1) % flashcards.length;
+            updateCard();
+        }
+
+        // Volta para o card anterior
+        function prevCard(event) {
+            event.stopPropagation(); // Evita que o card vire ao clicar no botão
+            currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
+            updateCard();
+        }
+    </script>
+
+</body>
+</html>
